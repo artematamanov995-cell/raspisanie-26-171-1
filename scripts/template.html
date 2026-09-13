@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Расписание · __GROUP__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #EEF0E9;
+    --paper-line: rgba(30,42,38,0.06);
+    --ink: #1E2B27;
+    --ink-soft: #5B6B63;
+    --line: #C7CCC2;
+    --accent: #2F5D50;
+    --accent-bg: rgba(47,93,80,0.10);
+    --ochre: #A9701F;
+    --ochre-bg: rgba(169,112,31,0.12);
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--paper-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .sheet{ max-width: 640px; margin: 0 auto; padding: 28px 18px 44px; }
+  .title-block{
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    padding: 14px 18px;
+    margin-bottom: 26px;
+    background: rgba(255,255,255,0.35);
+  }
+  .tb-row{ display:flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .tb-field{ display:flex; flex-direction:column; gap:3px; }
+  .tb-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .tb-value{ font-family:'Fraunces', serif; font-size: 1.5rem; font-weight: 600; line-height: 1.1; }
+  .tb-value.small{ font-size: 1.05rem; font-weight: 500; }
+
+  .day{
+    padding: 14px 14px 4px;
+    margin-bottom: 22px;
+    border-top: 2px solid var(--ink);
+    position: relative;
+  }
+  .day.today{ background: var(--accent-bg); border-radius: 4px; border-top: 2px solid var(--accent); }
+  .day-head{ display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .day-name{ font-family:'Fraunces', serif; font-weight: 600; font-size: 1.12rem; }
+  .day.today .day-name{ color: var(--accent); }
+  .day-date{ font-family:'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--ink-soft); }
+  .today-flag{
+    font-family:'IBM Plex Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent);
+  }
+
+  .lesson{ display:flex; gap: 12px; padding: 11px 0; border-bottom: 1px dashed var(--line); }
+  .day > .lesson:last-of-type{ border-bottom: none; }
+  .time{
+    font-family:'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--ink-soft);
+    flex-shrink: 0; min-width: 76px; padding-top: 3px;
+  }
+  .lesson-body{ flex:1; min-width: 0; }
+  .tag{
+    display:inline-block; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.02em;
+    padding: 2px 7px; border-radius: 3px; margin-bottom: 5px;
+  }
+  .tag.lecture{ background: var(--accent-bg); color: var(--accent); }
+  .tag.practice{ background: var(--ochre-bg); color: var(--ochre); }
+  .subject{ font-weight: 500; font-size: 0.95rem; line-height: 1.35; margin-bottom: 4px; }
+  .subject:not(:first-child){ margin-top: 10px; }
+  .entry{ font-size: 0.82rem; color: var(--ink-soft); line-height: 1.55; }
+  .entry b{ color: var(--ink); font-weight: 500; }
+
+  .foot-note{
+    font-family:'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-soft);
+    text-align: center; margin-top: 20px; line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <header class="title-block">
+      <div class="tb-row">
+        <div class="tb-field">
+          <span class="tb-label">Группа</span>
+          <span class="tb-value">__GROUP__</span>
+        </div>
+        <div class="tb-field">
+          <span class="tb-label">Неделя</span>
+          <span class="tb-value small">__WEEK_RANGE__</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="days"></main>
+
+    <div class="foot-note">
+      По данным nsuada.ru · обновляется автоматически<br>
+      Последнее обновление: __GENERATED__
+    </div>
+  </div>
+
+<script>
+const WEEK = __WEEK_JSON__;
+
+function todayISO(){
+  const d = new Date();
+  const off = d.getTimezoneOffset() * 60000;
+  return new Date(d - off).toISOString().slice(0,10);
+}
+
+function tagLabel(kind){
+  if (kind === 'lecture') return 'Лекция';
+  if (kind === 'practice') return 'Практика';
+  return null;
+}
+
+function render(){
+  const container = document.getElementById('days');
+  const today = todayISO();
+  container.innerHTML = WEEK.map(day => {
+    const isToday = day.date === today;
+    const lessonsHtml = day.lessons.map(l => {
+      const label = tagLabel(l.kind);
+      const tagHtml = label ? `<span class="tag ${l.kind}">${label}</span>` : '';
+      const subjectsHtml = l.subjects.map(s => {
+        const entriesHtml = s.entries.map(e =>
+          `<div class="entry">ауд. <b>${e.room}</b> · ${e.teacher}</div>`
+        ).join('');
+        return `<div class="subject">${s.name}</div>${entriesHtml}`;
+      }).join('');
+      return `
+        <div class="lesson">
+          <div class="time">${l.start}\u2013${l.end}</div>
+          <div class="lesson-body">${tagHtml}${subjectsHtml}</div>
+        </div>`;
+    }).join('');
+    return `
+      <section class="day${isToday ? ' today' : ''}">
+        <div class="day-head">
+          <span class="day-name">${day.name}</span>
+          ${isToday ? '<span class="today-flag">Сегодня</span>' : `<span class="day-date">${day.dateLabel}</span>`}
+        </div>
+        ${lessonsHtml}
+      </section>`;
+  }).join('');
+}
+
+render();
+</script>
+</body>
+</html>
