@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Расписание · 26-171-1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #EEF0E9;
+    --paper-line: rgba(30,42,38,0.06);
+    --ink: #1E2B27;
+    --ink-soft: #5B6B63;
+    --line: #C7CCC2;
+    --accent: #2F5D50;
+    --accent-bg: rgba(47,93,80,0.10);
+    --ochre: #A9701F;
+    --ochre-bg: rgba(169,112,31,0.12);
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--paper-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .sheet{ max-width: 640px; margin: 0 auto; padding: 28px 18px 44px; }
+  .title-block{
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    padding: 14px 18px;
+    margin-bottom: 26px;
+    background: rgba(255,255,255,0.35);
+  }
+  .tb-row{ display:flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .tb-field{ display:flex; flex-direction:column; gap:3px; }
+  .tb-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .tb-value{ font-family:'Fraunces', serif; font-size: 1.5rem; font-weight: 600; line-height: 1.1; }
+  .tb-value.small{ font-size: 1.05rem; font-weight: 500; }
+
+  .day{
+    padding: 14px 14px 4px;
+    margin-bottom: 22px;
+    border-top: 2px solid var(--ink);
+    position: relative;
+  }
+  .day.today{ background: var(--accent-bg); border-radius: 4px; border-top: 2px solid var(--accent); }
+  .day-head{ display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .day-name{ font-family:'Fraunces', serif; font-weight: 600; font-size: 1.12rem; }
+  .day.today .day-name{ color: var(--accent); }
+  .day-date{ font-family:'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--ink-soft); }
+  .today-flag{
+    font-family:'IBM Plex Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent);
+  }
+
+  .lesson{ display:flex; gap: 12px; padding: 11px 0; border-bottom: 1px dashed var(--line); }
+  .day > .lesson:last-of-type{ border-bottom: none; }
+  .time{
+    font-family:'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--ink-soft);
+    flex-shrink: 0; min-width: 76px; padding-top: 3px;
+  }
+  .lesson-body{ flex:1; min-width: 0; }
+  .tag{
+    display:inline-block; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.02em;
+    padding: 2px 7px; border-radius: 3px; margin-bottom: 5px;
+  }
+  .tag.lecture{ background: var(--accent-bg); color: var(--accent); }
+  .tag.practice{ background: var(--ochre-bg); color: var(--ochre); }
+  .subject{ font-weight: 500; font-size: 0.95rem; line-height: 1.35; margin-bottom: 4px; }
+  .subject:not(:first-child){ margin-top: 10px; }
+  .entry{ font-size: 0.82rem; color: var(--ink-soft); line-height: 1.55; }
+  .entry b{ color: var(--ink); font-weight: 500; }
+
+  .foot-note{
+    font-family:'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-soft);
+    text-align: center; margin-top: 20px; line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <header class="title-block">
+      <div class="tb-row">
+        <div class="tb-field">
+          <span class="tb-label">Группа</span>
+          <span class="tb-value">26-171-1</span>
+        </div>
+        <div class="tb-field">
+          <span class="tb-label">Неделя</span>
+          <span class="tb-value small">14–19 сентября 2026</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="days"></main>
+
+    <div class="foot-note">
+      По данным nsuada.ru · обновляется автоматически<br>
+      Последнее обновление: 13.09.2026 12:00 (Новосибирск) — тестовая сборка
+    </div>
+  </div>
+
+<script>
+const WEEK = [
+  {
+    "name": "Понедельник",
+    "date": "2026-09-14",
+    "dateLabel": "14 сентября",
+    "lessons": [
+      {
+        "start": "8.30",
+        "end": "10.05",
+        "kind": "practice",
+        "subjects": [
+          {
+            "name": "Иностранный язык,английский,п/гр.1",
+            "entries": [
+              {
+                "room": "422",
+                "teacher": "Муравьев Е.Д."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": "10.20",
+        "end": "11.55",
+        "kind": "practice",
+        "subjects": [
+          {
+            "name": "Элективные дисциплины по физической культуре и спорту",
+            "entries": [
+              {
+                "room": "с/з",
+                "teacher": "Гунбина Т.В."
+              },
+              {
+                "room": "с/з",
+                "teacher": "Локтев К.И."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": "12.40",
+        "end": "14.15",
+        "kind": "practice",
+        "subjects": [
+          {
+            "name": "Иностранный язык,п/гр.2",
+            "entries": [
+              {
+                "room": "416",
+                "teacher": "Муравьев Е.Д."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": "16.10",
+        "end": "17.45",
+        "kind": "lecture",
+        "subjects": [
+          {
+            "name": "Введение в коммуникационные специальности",
+            "entries": [
+              {
+                "room": "WEB 216",
+                "teacher": "Паршукова П.Н."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": "17.50",
+        "end": "19.25",
+        "kind": "practice",
+        "subjects": [
+          {
+            "name": "Введение в коммуникационные специальности",
+            "entries": [
+              {
+                "room": "WEB 216",
+                "teacher": "Паршукова П.Н."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Вторник",
+    "date": "2026-09-15",
+    "dateLabel": "15 сентября",
+    "lessons": [
+      {
+        "start": "8.30",
+        "end": "10.05",
+        "kind": "practice",
+        "subjects": [
+          {
+            "name": "Информатика,п/гр.1",
+            "entries": [
+              {
+                "room": "414",
+                "teacher": "Мокийчук С.А."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": "10.20",
+        "end": "11.55",
+        "kind": "practice",
+        "subjects": [
+          {
+            "name": "Информатика,п/гр.2",
+            "entries": [
+              {
+                "room": "414",
+                "teacher": "Мокийчук С.А."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Среда",
+    "date": "2026-09-16",
+    "dateLabel": "16 сентября",
+    "lessons": [
+      {
+        "start": "10.20",
+        "end": "11.55",
+        "kind": "lecture",
+        "subjects": [
+          {
+            "name": "Теория и практика массмедиа",
+            "entries": [
+              {
+                "room": "WEB 218(3)",
+                "teacher": "Гайгерова О.В."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": "12.40",
+        "end": "14.15",
+        "kind": "lecture",
+        "subjects": [
+          {
+            "name": "Русский язык и культура речи",
+            "entries": [
+              {
+                "room": "WEB 218(3)",
+                "teacher": "Дьячкова Н.В."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Четверг",
+    "date": "2026-09-17",
+    "dateLabel": "17 сентября",
+    "lessons": [
+      {
+        "start": "8.30",
+        "end": "10.05",
+        "kind": "practice",
+        "subjects": [
+          {
+            "name": "Основы российской государственности",
+            "entries": [
+              {
+                "room": "417",
+                "teacher": "Бондаренко М.А."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": "10.20",
+        "end": "11.55",
+        "kind": "practice",
+        "subjects": [
+          {
+            "name": "Элективные дисциплины по физической культуре и спорту",
+            "entries": [
+              {
+                "room": "с/з",
+                "teacher": "Гунбина Т.В."
+              },
+              {
+                "room": "с/з",
+                "teacher": "Локтев К.И."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": "12.40",
+        "end": "14.15",
+        "kind": "practice",
+        "subjects": [
+          {
+            "name": "История рекламы и связей с общественностью",
+            "entries": [
+              {
+                "room": "322",
+                "teacher": "Захарова А.В."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": "14.25",
+        "end": "16.00",
+        "kind": null,
+        "subjects": [
+          {
+            "name": "Кураторский час",
+            "entries": [
+              {
+                "room": "209",
+                "teacher": "Салехи Ф.А."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Пятница",
+    "date": "2026-09-18",
+    "dateLabel": "18 сентября",
+    "lessons": [
+      {
+        "start": "8.30",
+        "end": "11.55",
+        "kind": "lecture",
+        "subjects": [
+          {
+            "name": "История искусств",
+            "entries": [
+              {
+                "room": "WEB 218(3)",
+                "teacher": "Шавшина И.П."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": "14.25",
+        "end": "16.00",
+        "kind": "lecture",
+        "subjects": [
+          {
+            "name": "История рекламы и связей с общественностью",
+            "entries": [
+              {
+                "room": "WEB 218(3)",
+                "teacher": "Захарова А.В."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Суббота",
+    "date": "2026-09-19",
+    "dateLabel": "19 сентября",
+    "lessons": [
+      {
+        "start": "10.20",
+        "end": "11.55",
+        "kind": "lecture",
+        "subjects": [
+          {
+            "name": "Основы российской государственности",
+            "entries": [
+              {
+                "room": "WEB 218(1)",
+                "teacher": "Бондаренко М.А."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+];
+
+function todayISO(){
+  const d = new Date();
+  const off = d.getTimezoneOffset() * 60000;
+  return new Date(d - off).toISOString().slice(0,10);
+}
+
+function tagLabel(kind){
+  if (kind === 'lecture') return 'Лекция';
+  if (kind === 'practice') return 'Практика';
+  return null;
+}
+
+function render(){
+  const container = document.getElementById('days');
+  const today = todayISO();
+  container.innerHTML = WEEK.map(day => {
+    const isToday = day.date === today;
+    const lessonsHtml = day.lessons.map(l => {
+      const label = tagLabel(l.kind);
+      const tagHtml = label ? `<span class="tag ${l.kind}">${label}</span>` : '';
+      const subjectsHtml = l.subjects.map(s => {
+        const entriesHtml = s.entries.map(e =>
+          `<div class="entry">ауд. <b>${e.room}</b> · ${e.teacher}</div>`
+        ).join('');
+        return `<div class="subject">${s.name}</div>${entriesHtml}`;
+      }).join('');
+      return `
+        <div class="lesson">
+          <div class="time">${l.start}\u2013${l.end}</div>
+          <div class="lesson-body">${tagHtml}${subjectsHtml}</div>
+        </div>`;
+    }).join('');
+    return `
+      <section class="day${isToday ? ' today' : ''}">
+        <div class="day-head">
+          <span class="day-name">${day.name}</span>
+          ${isToday ? '<span class="today-flag">Сегодня</span>' : `<span class="day-date">${day.dateLabel}</span>`}
+        </div>
+        ${lessonsHtml}
+      </section>`;
+  }).join('');
+}
+
+render();
+</script>
+</body>
+</html>
